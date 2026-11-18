@@ -47,4 +47,4 @@ export default function ServiceCard({ service }: ServiceCardProps) {
       </div>
     </div>
   );
-}
+}// service card
