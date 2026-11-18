@@ -26,6 +26,20 @@ export const auth = betterAuth({
       bio: { type: "string", required: false },
     },
   },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          const allowedRoles = ["customer", "technician"];
+          const safeRole = allowedRoles.includes((user as any).role)
+            ? (user as any).role
+            : "customer";
+          return { data: { ...user, role: safeRole } };
+        },
+      },
+    },
+  },
+
   plugins: [
     jwt({
       jwt: {
