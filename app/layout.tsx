@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
-import { Toaster } from "react-hot-toast";
+import { Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "FixMate — Trusted Device & Appliance Repair",
-  description: "On-demand repair service booking platform",
+  title: "FixMate - Device Repair Service",
+  description: "Find trusted experts for your device repairs.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body>
+      <body className={inter.className}>
         {children}
-        <Toaster position="top-center" toastOptions={{ duration: 3500 }} />
+        <Toaster position="top-center" />
       </body>
     </html>
   );

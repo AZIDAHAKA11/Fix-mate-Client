@@ -8,7 +8,9 @@ import { headers } from "next/headers";
 const globalForMongo = globalThis as unknown as { _mongo?: MongoClient };
 const client = globalForMongo._mongo ?? new MongoClient(process.env.MONGODB_URI!);
 if (process.env.NODE_ENV !== "production") globalForMongo._mongo = client;
-const db = client.db();
+
+// 🆕 এখানে ডাটাবেসের নাম "fixmate_db" বলে দেওয়া হলো
+const db = client.db("fixmate_db");
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
