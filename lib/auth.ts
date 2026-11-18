@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { nextCookies } from "better-auth/next-js";
+import { jwt } from "better-auth/plugins";
 import { MongoClient } from "mongodb";
 import { headers } from "next/headers";
 
@@ -25,7 +26,14 @@ export const auth = betterAuth({
       bio: { type: "string", required: false },
     },
   },
-  plugins: [nextCookies()],
+  plugins: [
+    jwt({
+      jwt: {
+        expirationTime: "7d",
+      },
+    }),
+    nextCookies(),
+  ],
 });
 
 export async function getSession() {
