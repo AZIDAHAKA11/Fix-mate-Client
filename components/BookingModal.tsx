@@ -108,4 +108,4 @@ export default function BookingModal({ service, onClose }: { service: any, onClo
       </div>
     </div>
   );
-}
+}// booking modal
