@@ -19,11 +19,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isPending) return <div className="flex justify-center py-20">Loading...</div>;
 
-  const links = [
+    const links = [
     { name: "Overview", href: "/dashboard/admin" },
     { name: "Manage Users", href: "/dashboard/admin/users" },
     { name: "Service Approval", href: "/dashboard/admin/services" },
     { name: "All Bookings", href: "/dashboard/admin/bookings" },
+    { name: "Transactions", href: "/dashboard/admin/transactions" },
+    { name: "Update Profile", href: "/dashboard/profile" },
   ];
 
   return (
