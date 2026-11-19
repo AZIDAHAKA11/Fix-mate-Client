@@ -1,149 +1,352 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession } from "@/lib/auth-client";
-import { Loader2, Trash2, Edit } from "lucide-react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import Link from "next/link";
+import { Loader2, Upload } from "lucide-react";
 
-export default function MyServicesPage() {
+export default function AddServicePage() {
   const { data: session, isPending } = useSession();
-  const [services, setServices] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  const fetchServices = async () => {
-    if (!session?.user?.email) return;
+  const [loading, setLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    title: "",
+    category: "Smartphone",
+    description: "",
+    basePrice: "",
+    estimatedDuration: "",
+    serviceMode: "Home Visit",
+    serviceArea: "",
+    image: "",
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // Upload service image
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    setImageUploading(true);
+
+    const imageFormData = new FormData();
+    imageFormData.append("image", file);
+
     try {
-      const res = await fetch(`http://localhost:5000/api/services?technicianEmail=${session.user.email}`);
-      if (res.ok) {
-        const data = await res.json();
-        setServices(data);
+      const res = await fetch(
+        `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`,
+        {
+          method: "POST",
+          body: imageFormData,
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.success) {
+        setFormData((prev) => ({
+          ...prev,
+          image: data.data.url,
+        }));
+
+        toast.success("Image uploaded successfully");
+      } else {
+        toast.error("Image upload failed");
       }
     } catch (error) {
-      toast.error("Failed to load services");
+      console.error(error);
+      toast.error("Error uploading image");
+    } finally {
+      setImageUploading(false);
+    }
+  };
+
+  // Submit service
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isPending || !session?.user) {
+      return toast.error("Please login first");
+    }
+
+    if (!formData.image) {
+      return toast.error("Please upload a service image");
+    }
+
+    if (Number(formData.basePrice) <= 0) {
+      return toast.error("Please enter a valid price");
+    }
+
+    setLoading(true);
+
+    try {
+      // Get JWT token
+      const tokenResponse = await fetch("/api/auth/token");
+
+      if (!tokenResponse.ok) {
+        throw new Error("Failed to get authentication token");
+      }
+
+      const tokenData = await tokenResponse.json();
+
+      if (!tokenData.token) {
+        throw new Error("Authentication token not found");
+      }
+
+      // Send only service information
+      // Technician identity and approval status
+      // will be controlled by the backend.
+      const serviceData = {
+        ...formData,
+        basePrice: Number(formData.basePrice),
+      };
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/services`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${tokenData.token}`,
+          },
+          body: JSON.stringify(serviceData),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to add service");
+      }
+
+      toast.success(
+        "Service added successfully! Waiting for admin approval."
+      );
+
+      router.push("/dashboard/technician/my-services");
+
+    } catch (error) {
+      console.error("Add service error:", error);
+
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong"
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (!isPending) {
-      if (!session) window.location.href = "/sign-in";
-      else fetchServices();
-    }
-  }, [isPending, session]);
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this service?")) return;
-
-    try {
-      const res = await fetch(`http://localhost:5000/api/services/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        toast.success("Service deleted successfully");
-        fetchServices();
-      } else {
-        toast.error("Failed to delete service");
-      }
-    } catch (error) {
-      toast.error("Something went wrong");
-    }
-  };
-
-  const toggleAvailability = async (id: string, currentStatus: boolean) => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/services/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isAvailable: !currentStatus }),
-      });
-      if (res.ok) {
-        toast.success(`Service ${!currentStatus ? 'enabled' : 'disabled'}`);
-        fetchServices();
-      }
-    } catch (error) {
-      toast.error("Failed to update availability");
-    }
-  };
-
-  if (isPending || loading) {
-    return <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-indigo-600" /></div>;
+  if (isPending) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">My Services</h1>
-        <Link href="/dashboard/technician/add-service" className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition">
-          + Add New Service
-        </Link>
-      </div>
+    <div className="max-w-3xl mx-auto py-10 px-4">
+      <h1 className="text-3xl font-bold mb-8">
+        Add New Service
+      </h1>
 
-      {services.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-xl border border-gray-100">
-          <p className="text-gray-500 mb-4">You haven't added any services yet.</p>
-          <Link href="/dashboard/technician/add-service" className="text-indigo-600 font-semibold hover:underline">
-            Create your first service
-          </Link>
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-6"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Service Title
+            </label>
+
+            <input
+              required
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              type="text"
+              placeholder="e.g. iPhone Screen Replacement"
+              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Category
+            </label>
+
+            <select
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            >
+              <option value="Smartphone">Smartphone</option>
+              <option value="Laptop & PC">Laptop & PC</option>
+              <option value="AC">AC</option>
+              <option value="Refrigerator">Refrigerator</option>
+              <option value="TV">TV</option>
+              <option value="Washing Machine">Washing Machine</option>
+              <option value="Electrical">Electrical</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Base Price (USD)
+            </label>
+
+            <input
+              required
+              name="basePrice"
+              value={formData.basePrice}
+              onChange={handleChange}
+              type="number"
+              min="1"
+              placeholder="50"
+              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Estimated Duration
+            </label>
+
+            <input
+              required
+              name="estimatedDuration"
+              value={formData.estimatedDuration}
+              onChange={handleChange}
+              type="text"
+              placeholder="e.g. 2-3 hours"
+              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Service Mode
+            </label>
+
+            <select
+              name="serviceMode"
+              value={formData.serviceMode}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            >
+              <option value="Home Visit">Home Visit</option>
+              <option value="Shop Drop-off">Shop Drop-off</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Service Area
+            </label>
+
+            <input
+              required
+              name="serviceArea"
+              value={formData.serviceArea}
+              onChange={handleChange}
+              type="text"
+              placeholder="e.g. Mirpur, Dhaka"
+              className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            />
+          </div>
+
         </div>
-      ) : (
-        <div className="grid gap-6">
-          {services.map((service) => (
-            <div key={service._id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
-              
-              <div className="flex items-center gap-4 flex-1 w-full">
-                <img 
-                  src={service.image || "https://via.placeholder.com/100"} 
-                  alt={service.title} 
-                  className="w-20 h-20 object-cover rounded-lg"
-                />
-                <div>
-                  <h3 className="font-bold text-lg text-gray-900">{service.title}</h3>
-                  <p className="text-sm text-gray-500">{service.category} • ${service.basePrice} • {service.serviceMode}</p>
-                  <div className="flex gap-2 mt-2">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      service.approvalStatus === 'approved' ? 'bg-green-100 text-green-700' :
-                      service.approvalStatus === 'rejected' ? 'bg-red-100 text-red-700' :
-                      'bg-amber-100 text-amber-700'
-                    }`}>
-                      {service.approvalStatus.toUpperCase()}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      service.isAvailable ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {service.isAvailable ? 'Available' : 'Unavailable'}
-                    </span>
-                  </div>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-3 w-full md:w-auto justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
-                <button 
-                  onClick={() => toggleAvailability(service._id, service.isAvailable)}
-                  className={`text-sm px-3 py-1.5 rounded-lg font-medium transition ${
-                    service.isAvailable ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                  }`}
-                >
-                  {service.isAvailable ? 'Disable' : 'Enable'}
-                </button>
-                
-                <button className="p-2 text-gray-500 hover:text-indigo-600 bg-gray-50 rounded-lg transition">
-                  <Edit className="w-5 h-5" />
-                </button>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Description
+          </label>
 
-                <button 
-                  onClick={() => handleDelete(service._id)}
-                  className="p-2 text-gray-500 hover:text-red-600 bg-gray-50 rounded-lg transition"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-
-            </div>
-          ))}
+          <textarea
+            required
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows={4}
+            placeholder="Describe what the service includes..."
+            className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          />
         </div>
-      )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Service Image
+          </label>
+
+          <div className="flex items-center gap-4">
+
+            <label className="cursor-pointer bg-indigo-50 text-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-100 transition flex items-center gap-2">
+
+              {imageUploading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Upload className="w-5 h-5" />
+              )}
+
+              {imageUploading ? "Uploading..." : "Upload Image"}
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                disabled={imageUploading}
+              />
+
+            </label>
+
+            {formData.image && (
+              <img
+                src={formData.image}
+                alt="Service"
+                className="w-16 h-16 object-cover rounded-lg border"
+              />
+            )}
+
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading || imageUploading}
+          className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 flex justify-center items-center gap-2"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Adding Service...
+            </>
+          ) : (
+            "Add Service"
+          )}
+        </button>
+
+      </form>
     </div>
   );
-}// update
+}

@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FixMate – Client
 
-## Getting Started
+FixMate is a full-stack repair service booking platform that connects customers with professional technicians. Customers can explore repair services, book technicians, track their repair requests, and make online payments. Technicians can manage their services and handle customer requests, while administrators manage the platform.
 
-First, run the development server:
+## Live Website
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**Live URL:** `YOUR_FRONTEND_LIVE_URL`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Admin Demo Credentials
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Email:** `YOUR_ADMIN_EMAIL`
+- **Password:** `YOUR_ADMIN_PASSWORD`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> Replace these placeholders with demo credentials intended for public testing. Never publish your personal or production administrator password.
 
-## Learn More
+## User Roles
 
-To learn more about Next.js, take a look at the following resources:
+- **Customer:** Browse services, book technicians, track bookings, and make payments.
+- **Technician:** Add and manage services, receive booking requests, and update job statuses.
+- **Admin:** Manage users, approve services, oversee bookings, and view transactions.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Key Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- User authentication and role-based dashboards.
+- Browse approved and available repair services.
+- View detailed service information.
+- Book repair services from technicians.
+- Customer booking history and booking status tracking.
+- Technician service management.
+- Technician request management and job status updates.
+- Admin dashboard for managing users and services.
+- Admin service approval system.
+- Stripe checkout integration.
+- Payment history and transaction details.
+- Image uploading through ImgBB.
+- Responsive design for different screen sizes.
 
-## Deploy on Vercel
+## Technologies Used
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Next.js (App Router)
+- React
+- TypeScript
+- Tailwind CSS
+- Better Auth
+- Stripe
+- ImgBB
+- Lucide React
+- React Hot Toast
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+## Backend
+
+The frontend communicates with the FixMate Express backend.
+
+**Backend Live URL:** `YOUR_BACKEND_LIVE_URL`
+
+## Project Purpose
+
+FixMate aims to make repair service booking easier by providing a centralized platform where customers can find technicians, request repair services, and manage payments online.

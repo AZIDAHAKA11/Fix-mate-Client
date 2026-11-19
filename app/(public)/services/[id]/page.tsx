@@ -2,69 +2,250 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useSession } from "@/lib/auth-client";
-import BookingModal from "@/components/BookingModal";
-import { Loader2, Wrench, MapPin, Clock } from "lucide-react";
-import toast from "react-hot-toast";
+import Link from "next/link";
+import {
+  Loader2,
+  ArrowLeft,
+  MapPin,
+  User,
+  Star,
+  Wrench,
+} from "lucide-react";
 
 export default function ServiceDetailsPage() {
-  const { id } = useParams();
+  const params = useParams();
   const router = useRouter();
-  const { data: session } = useSession();
-  
+
+  const id = params.id as string;
+
   const [service, setService] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/services/${id}`)
-      .then(res => res.json())
-      .then(data => setService(data))
-      .catch(() => toast.error("Service not found"))
-      .finally(() => setIsLoading(false));
+    const fetchService = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(
+          `http://localhost:5000/api/services?search=`,
+          {
+            cache: "no-store",
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch services");
+        }
+
+        const services = await response.json();
+
+        const foundService = services.find(
+          (item: any) => item._id === id
+        );
+
+        if (!foundService) {
+          setError("Service not found.");
+          return;
+        }
+
+        setService(foundService);
+      } catch (error) {
+        console.error("Service fetch error:", error);
+        setError("Failed to load service details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchService();
+    }
   }, [id]);
 
-  if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-indigo-600" /></div>;
-  if (!service) return <div className="text-center py-20 text-gray-500">Service not found.</div>;
+  // Loading
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex justify-center items-center">
+        <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
-  const handleRequestClick = () => {
-    if (!session?.user) {
-      toast.error("Please login to request a repair");
-      router.push(`/sign-in?redirect=/services/${id}`);
-    } else if ((session.user as any).role !== "customer") {
-      toast.error("Only customers can request a repair");
-    } else {
-      setIsModalOpen(true);
-    }
-  };
+  // Error / Not found
+  if (error || !service) {
+    return (
+      <div className="min-h-[60vh] flex flex-col justify-center items-center px-6 text-center">
+        <Wrench className="w-16 h-16 text-gray-300 mb-4" />
+
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
+          Service Not Found
+        </h1>
+
+        <p className="text-gray-500 mb-6">
+          {error || "This service may have been removed or is unavailable."}
+        </p>
+
+        <Link
+          href="/services"
+          className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition"
+        >
+          Browse Services
+        </Link>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
-      <div className="grid md:grid-cols-2 gap-12">
-        <img src={service.image} alt={service.title} className="w-full h-[400px] object-cover rounded-2xl" />
-        
+    <div className="max-w-7xl mx-auto px-4 py-8 md:px-6">
+
+      {/* Back Button */}
+      <Link
+        href="/services"
+        className="inline-flex items-center gap-2 text-gray-500 hover:text-indigo-600 mb-6 transition"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Back to Services
+      </Link>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        {/* Main Content */}
+        <div className="lg:col-span-2">
+
+          {/* Service Card */}
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+
+            {/* Service Header */}
+            <div className="p-6 md:p-8">
+
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <span className="bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium">
+                  {service.category}
+                </span>
+
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    service.isAvailable
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {service.isAvailable ? "Available" : "Unavailable"}
+                </span>
+              </div>
+
+              <h1 className="text-2xl md:text-4xl font-bold text-gray-800 mb-4">
+                {service.title}
+              </h1>
+
+              <div className="text-3xl font-bold text-indigo-600 mb-6">
+                ৳{service.basePrice}
+              </div>
+
+              {/* Description */}
+              <div className="border-t border-gray-100 pt-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                  About This Service
+                </h2>
+
+                <p className="text-gray-600 leading-7 whitespace-pre-line">
+                  {service.description || "No description provided."}
+                </p>
+              </div>
+
+              {/* Service Mode */}
+              <div className="mt-6 flex items-center gap-3">
+                <MapPin className="w-5 h-5 text-indigo-600" />
+
+                <div>
+                  <p className="text-sm text-gray-500">
+                    Service Mode
+                  </p>
+
+                  <p className="font-medium text-gray-800 capitalize">
+                    {service.serviceMode || "On-site"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Technician Information */}
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 mt-6 shadow-sm">
+
+            <h2 className="text-xl font-bold text-gray-800 mb-5">
+              Service Provider
+            </h2>
+
+            <div className="flex items-center gap-4">
+
+              <div className="w-14 h-14 rounded-full bg-indigo-100 flex items-center justify-center">
+                <User className="w-7 h-7 text-indigo-600" />
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-800">
+                  {service.technicianName || "Technician"}
+                </h3>
+
+                <p className="text-sm text-gray-500">
+                  {service.technicianEmail}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Booking Sidebar */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">{service.title}</h1>
-          <p className="text-indigo-600 font-semibold mb-6">{service.category}</p>
-          
-          <div className="space-y-4 mb-8 text-gray-600">
-            <p className="flex items-center gap-2"><MapPin className="w-5 h-5 text-indigo-500" /> {service.serviceArea} • {service.serviceMode}</p>
-            <p className="flex items-center gap-2"><Clock className="w-5 h-5 text-indigo-500" /> Est. Duration: {service.estimatedDuration}</p>
-            <p className="flex items-center gap-2"><Wrench className="w-5 h-5 text-indigo-500" /> Technician: {service.technicianName}</p>
-          </div>
+          <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm sticky top-6">
 
-          <div className="bg-gray-50 p-6 rounded-xl mb-8">
-            <p className="text-sm text-gray-500 mb-1">Starting Price</p>
-            <p className="text-4xl font-bold text-gray-900">${service.basePrice}</p>
-          </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">
+              Book This Service
+            </h2>
 
-          <button onClick={handleRequestClick} className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition">
-            Request Repair
-          </button>
+            <p className="text-gray-500 text-sm mb-6">
+              Get professional service from an experienced technician.
+            </p>
+
+            <div className="border-b border-gray-100 pb-4 mb-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">
+                  Service Price
+                </span>
+
+                <span className="text-xl font-bold text-indigo-600">
+                  ৳{service.basePrice}
+                </span>
+              </div>
+            </div>
+
+            {service.isAvailable ? (
+              <button
+                onClick={() =>
+                  router.push(`/booking/${service._id}`)
+                }
+                className="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition"
+              >
+                Book Now
+              </button>
+            ) : (
+              <button
+                disabled
+                className="w-full bg-gray-300 text-gray-500 py-3 rounded-xl font-semibold cursor-not-allowed"
+              >
+                Currently Unavailable
+              </button>
+            )}
+
+            <p className="text-xs text-gray-400 text-center mt-4">
+              You can review the booking details before confirming.
+            </p>
+          </div>
         </div>
       </div>
-
-      {isModalOpen && <BookingModal service={service} onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 }

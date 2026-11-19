@@ -40,9 +40,15 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-          <div className="hidden md:flex justify-center">
-            <div className="w-[400px] h-[400px] bg-indigo-100 rounded-full flex items-center justify-center border-8 border-white shadow-2xl">
-              <Wrench className="w-32 h-32 text-indigo-400" />
+          
+          {/* Hero Image */}
+          <div className="hidden md:flex justify-center items-center">
+            <div className="relative w-[450px] h-[450px] rounded-full overflow-hidden border-8 border-white shadow-2xl">
+              <img 
+                src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=1000&auto=format&fit=crop" 
+                alt="Technician repairing a device" 
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>
@@ -123,5 +129,4 @@ export default async function HomePage() {
 
     </div>
   );
-}// home page update
-// final update
+}
