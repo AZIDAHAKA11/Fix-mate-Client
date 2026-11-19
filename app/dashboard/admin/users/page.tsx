@@ -37,7 +37,7 @@ export default function AdminUsersPage() {
       const token = await getToken();
 
       const res = await fetch(
-        "http://localhost:5000/api/admin/users",
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/users`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -94,7 +94,7 @@ export default function AdminUsersPage() {
       const token = await getToken();
 
       const res = await fetch(
-        `http://localhost:5000/api/admin/users/${userId}/role`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/users/${userId}/role`,
         {
           method: "PATCH",
 

@@ -37,7 +37,7 @@ export default function AdminServicesPage() {
       const token = await getToken();
 
       const res = await fetch(
-        "http://localhost:5000/api/admin/services",
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/services`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -98,7 +98,7 @@ export default function AdminServicesPage() {
       const token = await getToken();
 
       const res = await fetch(
-        `http://localhost:5000/api/admin/services/${id}/approval`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/services/${id}/approval`,
         {
           method: "PATCH",
 

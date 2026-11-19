@@ -37,7 +37,7 @@ export default function CustomerBookingsPage() {
         }
 
         const res = await fetch(
-          "http://localhost:5000/api/bookings/my",
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/my`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -92,7 +92,7 @@ export default function CustomerBookingsPage() {
       }
 
       const res = await fetch(
-        "http://localhost:5000/api/payments/create-checkout-session",
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/create-checkout-session`,
         {
           method: "POST",
           headers: {

@@ -41,7 +41,7 @@ export default function EditServicePage() {
         const tokenData = await tokenResponse.json();
 
         const response = await fetch(
-          `http://localhost:5000/api/services?technicianEmail=${session.user.email}`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services?technicianEmail=${session.user.email}`,
           {
             headers: {
               Authorization: `Bearer ${tokenData.token}`,
@@ -111,7 +111,7 @@ export default function EditServicePage() {
       const tokenData = await tokenResponse.json();
 
       const response = await fetch(
-        `http://localhost:5000/api/services/${id}`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services/${id}`,
         {
           method: "PATCH",
           headers: {

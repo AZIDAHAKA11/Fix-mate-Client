@@ -46,7 +46,7 @@ export default function BookingPage() {
   useEffect(() => {
     const fetchService = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/services");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services`);
 
         if (!res.ok) {
           throw new Error("Failed to fetch services");
@@ -133,7 +133,7 @@ export default function BookingPage() {
 
       // Send booking request
       const bookingRes = await fetch(
-        "http://localhost:5000/api/bookings",
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings`,
         {
           method: "POST",
           headers: {

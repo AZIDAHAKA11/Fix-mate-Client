@@ -22,7 +22,7 @@ function PaymentSuccessContent() {
 
     const verifyPayment = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/payments/verify?session_id=${sessionId}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/payments/verify?session_id=${sessionId}`);
         const data = await res.json();
         
         if (res.ok && data.session?.payment_status === 'paid') {

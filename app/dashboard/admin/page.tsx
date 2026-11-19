@@ -82,17 +82,17 @@ export default function AdminDashboardPage() {
         const [usersRes, servicesRes, bookingsRes] =
           await Promise.all([
             fetch(
-              "http://localhost:5000/api/admin/users",
+              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/users`,
               { headers }
             ),
 
             fetch(
-              "http://localhost:5000/api/admin/services",
+              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/services`,
               { headers }
             ),
 
             fetch(
-              "http://localhost:5000/api/admin/bookings",
+              `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/bookings`,
               { headers }
             ),
           ]);

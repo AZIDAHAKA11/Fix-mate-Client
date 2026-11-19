@@ -29,7 +29,7 @@ export default function ServiceDetailsPage() {
         setError("");
 
         const response = await fetch(
-          `http://localhost:5000/api/services?search=`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/services?search=`,
           {
             cache: "no-store",
           }

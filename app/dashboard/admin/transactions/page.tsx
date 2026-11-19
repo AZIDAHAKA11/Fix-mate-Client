@@ -42,7 +42,7 @@ export default function AdminTransactionsPage() {
 
       // Fetch transactions
       const res = await fetch(
-        "http://localhost:5000/api/admin/transactions",
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/transactions`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

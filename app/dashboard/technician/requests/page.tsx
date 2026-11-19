@@ -40,7 +40,7 @@ export default function TechnicianRequestsPage() {
       }
 
       const res = await fetch(
-        `http://localhost:5000/api/bookings/technician?email=${encodeURIComponent(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/technician?email=${encodeURIComponent(
           session.user.email
         )}`,
         {
@@ -97,7 +97,7 @@ export default function TechnicianRequestsPage() {
       }
 
       const res = await fetch(
-        `http://localhost:5000/api/bookings/${id}/status`,
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/bookings/${id}/status`,
         {
           method: "PATCH",
           headers: {

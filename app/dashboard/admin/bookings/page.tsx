@@ -26,7 +26,7 @@ export default function AdminBookingsPage() {
 
         // Fetch bookings with JWT
         const res = await fetch(
-          "http://localhost:5000/api/admin/bookings",
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'}/admin/bookings`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
